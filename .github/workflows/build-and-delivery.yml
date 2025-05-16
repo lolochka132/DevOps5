@@ -19,3 +19,10 @@ jobs:
         with:
           push: true
           tags: lolochka132/my-app:latest
+      - name: Build and Push
+  uses: docker/build-push-action@v4
+  with:
+    context: ./devops-lab5-main/devops-lab5-main  
+    file: ./devops-lab5-main/devops-lab5-main/Dockerfile
+    push: true
+    tags: ${{ vars.DOCKERHUB_USERNAME }}/my-app:latest
