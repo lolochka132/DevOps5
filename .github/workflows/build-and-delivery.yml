@@ -1,32 +1,27 @@
-name: Ultimate Docker Build
+name: Docker Build & Push
 
 on:
-  workflow_dispatch: 
   push:
     branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout with full path
+      - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Docker Hub Login
+        uses: docker/login-action@v3
         with:
-          path: 'full-project'
+          username: ${{ vars.DOCKERHUB_USERNAME }}  
+          password: ${{ secrets.DOCKERHUB_TOKEN }}   
 
-      - name: Debug step
-        run: |
-          cd full-project/devops-lab5-main/devops-lab5-main
-          pwd
-          ls -la
-          echo "Dockerfile exists: $(test -f Dockerfile && echo 'YES' || echo 'NO')"
-          cat Dockerfile || echo "No Dockerfile"
-
-      - name: Absolute path build
+      - name: Build and Push
         uses: docker/build-push-action@v4
         with:
-          context: full-project/devops-lab5-main/devops-lab5-main
-          file: full-project/devops-lab5-main/devops-lab5-main/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
           tags: ${{ vars.DOCKERHUB_USERNAME }}/my-app:latest
+          cache: true
