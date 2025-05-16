@@ -1,46 +1,32 @@
-name: Build and Delivery
+name: Ultimate Docker Build
 
 on:
-  workflow_run:
-    workflows: ["Test Python App"]
+  workflow_dispatch: 
+  push:
     branches: [main]
-    types: [completed]
 
 jobs:
-  cd:
+  build:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     
     steps:
-      - name: Checkout code
+      - name: Checkout with full path
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          path: 'devops-lab5-main/devops-lab5-main'
+          path: 'full-project'
 
-      - name: Verify Dockerfile
+      - name: Debug step
         run: |
-          cd devops-lab5-main/devops-lab5-main
+          cd full-project/devops-lab5-main/devops-lab5-main
+          pwd
           ls -la
-          echo "Dockerfile content:"
-          cat Dockerfile
-          echo "Requirements:"
-          cat requirements.txt
+          echo "Dockerfile exists: $(test -f Dockerfile && echo 'YES' || echo 'NO')"
+          cat Dockerfile || echo "No Dockerfile"
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push
+      - name: Absolute path build
         uses: docker/build-push-action@v4
         with:
-          context: devops-lab5-main/devops-lab5-main
-          file: devops-lab5-main/devops-lab5-main/Dockerfile
+          context: full-project/devops-lab5-main/devops-lab5-main
+          file: full-project/devops-lab5-main/devops-lab5-main/Dockerfile
           push: true
-          tags: |
-            ${{ vars.DOCKERHUB_USERNAME }}/my-app:latest
-            ${{ vars.DOCKERHUB_USERNAME }}/my-app:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/my-app:latest
